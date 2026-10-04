@@ -3494,6 +3494,37 @@
         <details class="card" id="c3">
           <summary><span class="n">3</span> Revisar roteiro e cenas</summary>
           <div class="body">
+            <label class="f"
+              >Roteiro completo ou prompt
+              <textarea
+                id="fullScript"
+                rows="6"
+                placeholder="Cole o roteiro completo ou descreva o prompt. Use uma linha em branco entre as cenas quando quiser definir a divisão."
+              ></textarea>
+            </label>
+            <div class="row">
+              <label class="f"
+                >Duração total do vídeo
+                <select id="scriptDuration">
+                  <option value="auto">Automática</option>
+                  <option value="15">15 s</option>
+                  <option value="20">20 s</option>
+                  <option value="30">30 s</option>
+                  <option value="45">45 s</option>
+                  <option value="60">60 s</option>
+                  <option value="90">90 s</option>
+                </select>
+              </label>
+              <div class="f" style="justify-content: end">
+                <span class="note"
+                  >As cenas e os tempos serão distribuídos
+                  automaticamente.</span
+                >
+                <button id="btnSplitScript" type="button">
+                  Dividir roteiro em cenas
+                </button>
+              </div>
+            </div>
             <div class="btns">
               <button id="btnBuild">Gerar roteiro automático</button>
               <button class="secondary" id="btnAI">✨ Roteiro com IA</button>
@@ -4125,6 +4156,7 @@ Comece hoje mesmo. Fale conosco.</textarea
           brandTheme: "auto",
           visualSeed: 0,
           narrationMode: "off",
+          fullScript: "",
           trans: "auto",
           tempo: "dinamico",
           target: "auto",
@@ -4743,6 +4775,75 @@ Comece hoje mesmo. Fale conosco.</textarea
               });
             }
           }
+        }
+        function scriptBlocks(value) {
+          const text = value.replace(/\r/g, "").trim();
+          if (!text) return [];
+          let blocks = text
+            .split(/\n\s*\n+/)
+            .map((block) => block.trim())
+            .filter(Boolean);
+          if (blocks.length === 1) {
+            const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+            const targetSeconds = parseFloat(state.target) || 30;
+            const sceneCount = clamp(Math.round(targetSeconds / 6), 2, 7);
+            const perScene = Math.ceil(sentences.length / sceneCount);
+            blocks = [];
+            for (let index = 0; index < sentences.length; index += perScene) {
+              blocks.push(
+                sentences
+                  .slice(index, index + perScene)
+                  .join(" ")
+                  .trim(),
+              );
+            }
+          }
+          return blocks.slice(0, 10);
+        }
+        function scenesFromFullScript(value) {
+          const blocks = scriptBlocks(value);
+          return blocks.map((block, index) => {
+            const clean = block
+              .replace(/^\s*(?:cena\s*)?\d+\s*[:.)-]\s*/i, "")
+              .trim();
+            const lines = clean
+              .split("\n")
+              .map((line) => line.replace(/^[-*]\s*/, "").trim())
+              .filter(Boolean);
+            const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
+            const title = clip((lines[0] || sentences[0] || clean).trim(), 90);
+            const last = index === blocks.length - 1;
+            const list = lines.length > 2 ? lines.slice(1, 6) : [];
+            const scene = {
+              id: uid(),
+              kind:
+                index === 0
+                  ? "intro"
+                  : last
+                    ? "cta"
+                    : list.length
+                      ? "bullets"
+                      : "title",
+              title,
+              sub: clip(
+                list.length
+                  ? ""
+                  : lines.slice(1).join(" ") ||
+                      sentences.slice(1).join(" ") ||
+                      state.brand.tagline,
+                160,
+              ),
+              items: list,
+              url: last ? domain() : "",
+              dur: 3.5,
+              trans: "auto",
+              narr: clip(clean, 420),
+              narrEdited: true,
+            };
+            if (last && !scene.sub)
+              scene.sub = state.brand.cta || "Fale conosco";
+            return scene;
+          });
         }
 
         /* ---------- canvas ---------- */
@@ -6598,6 +6699,8 @@ Use *asteriscos* em 1-2 palavras por cena. Envolva a narração em fala de verda
 Dados:
 ${brandFacts()}
 
+${state.fullScript.trim() ? "Roteiro ou prompt fornecido pelo usuário:\n" + state.fullScript.trim() : ""}
+
 Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":"..."},...]. SEM MARKDOWN, SEM BACKTICKS.`;
           const r = await sampleFn.json(prompt, { modelTier: "default" });
           if (!Array.isArray(r)) throw { code: "invalid_json" };
@@ -6756,6 +6859,18 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           });
           $("#soundtrackUrl").value = state.soundtrackUrl;
           $("#soundtrackEnabled").checked = state.soundtrackEnabled;
+          $("#fullScript").value = state.fullScript || "";
+          $("#scriptDuration").value = [
+            "auto",
+            "15",
+            "20",
+            "30",
+            "45",
+            "60",
+            "90",
+          ].includes(state.target)
+            ? state.target
+            : "auto";
           $("#customDuration").value = state.customDuration;
           $("#animIn").value = state.animation.input;
           $("#animOut").value = state.animation.output;
@@ -7183,9 +7298,32 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         });
         $("#target").addEventListener("change", (e) => {
           state.target = e.target.value;
+          $("#scriptDuration").value = [
+            "auto",
+            "15",
+            "20",
+            "30",
+            "45",
+            "60",
+            "90",
+          ].includes(state.target)
+            ? state.target
+            : "auto";
           fitDurations();
           renderScenes();
           refresh();
+        });
+        $("#scriptDuration").addEventListener("change", (e) => {
+          state.target = e.target.value;
+          $("#target").value = state.target;
+          fitDurations();
+          renderScenes();
+          refresh();
+          save();
+        });
+        bind("fullScript", (value) => {
+          state.fullScript = value;
+          save();
         });
         bind("customDuration", (v) => {
           state.customDuration = Math.max(8, Math.min(180, +v || 30));
@@ -7565,6 +7703,32 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           refresh();
           dirty = true;
           setMsg("#msgScenes", "Roteiro automático gerado.");
+        });
+        $("#btnSplitScript").addEventListener("click", () => {
+          const script = $("#fullScript").value.trim();
+          const scenes = scenesFromFullScript(script);
+          if (!scenes.length) {
+            setMsg(
+              "#msgScenes",
+              "Inclua um roteiro ou prompt para dividir em cenas.",
+              true,
+            );
+            return;
+          }
+          state.fullScript = script;
+          state.scenes = scenes;
+          state.edited = true;
+          fitDurations();
+          renderScenes();
+          invalidateGeneratedVideo();
+          refresh();
+          save();
+          setMsg(
+            "#msgScenes",
+            "Roteiro dividido em " +
+              scenes.length +
+              " cenas e durações ajustadas.",
+          );
         });
         $("#btnAdd").addEventListener("click", () => {
           const s = {
