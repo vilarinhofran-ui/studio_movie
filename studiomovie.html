@@ -3527,13 +3527,22 @@
             </div>
             <div class="btns">
               <button id="btnBuild">Gerar roteiro automático</button>
-              <button class="secondary" id="btnAI">✨ Roteiro com IA</button>
+              <button class="secondary" id="btnAI">
+                ✨ Roteiro com Claude
+              </button>
+              <button class="secondary hide" id="btnClaudeDirector">
+                ✨ Direção com Claude
+              </button>
               <button id="btnAdd">+ Cena</button>
               <button id="btnFit">⏱ Ajustar durações</button>
             </div>
             <p class="note">
               Dica: envolva palavras com *asteriscos* para destacá-las na cor de
               destaque da marca.
+            </p>
+            <p class="note">
+              A direção com Claude organiza cenas, linguagem visual, ritmo,
+              transições e trilha a partir da marca e do roteiro atual.
             </p>
             <p class="msg" id="msgScenes"></p>
             <div id="scenes" style="display: grid; gap: 10px">
@@ -6214,6 +6223,7 @@ Comece hoje mesmo. Fale conosco.</textarea
           "btnFit",
           "btnExtract",
           "btnAI",
+          "btnClaudeDirector",
           "btnRefine",
           "btnDemo",
         ];
@@ -6704,22 +6714,26 @@ ${state.fullScript.trim() ? "Roteiro ou prompt fornecido pelo usuário:\n" + sta
 Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":"..."},...]. SEM MARKDOWN, SEM BACKTICKS.`;
           const r = await sampleFn.json(prompt, { modelTier: "default" });
           if (!Array.isArray(r)) throw { code: "invalid_json" };
-          const out = r.map((s) => ({
+          const out = r.map((s) => aiScene(s));
+          if (!out.length) throw { code: "invalid_json" };
+          return out;
+        }
+        function aiScene(s) {
+          const kind = Object.hasOwn(KIND, s.kind) ? s.kind : "title";
+          return {
             id: uid(),
-            kind: s.kind || "title",
+            kind,
             title: clip(s.title || "", 100),
             sub: clip(s.sub || "", 160),
             items: Array.isArray(s.items)
               ? s.items.map((x) => clip(x, 48))
               : [],
-            url: s.kind === "cta" ? s.url || domain() : "",
+            url: kind === "cta" ? s.url || domain() : "",
             dur: clamp(Number(s.dur) || 3.5, 2.2, 9),
             trans: "auto",
             narr: clip(s.narracao || narrFor(s), 420),
             narrEdited: !!s.narracao,
-          }));
-          if (!out.length) throw { code: "invalid_json" };
-          return out;
+          };
         }
         async function aiScript() {
           if (!sampleFn) {
@@ -6742,6 +6756,92 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             refresh();
             setMsg("#msgScenes", "Roteiro com narração natural gerada!");
             dirty = true;
+          } catch (e) {
+            setMsg("#msgScenes", aiErr(e), true);
+          }
+          btn.disabled = false;
+          btn.textContent = old;
+        }
+        async function aiCreativeDirection() {
+          if (!sampleFn) {
+            setMsg(
+              "#msgScenes",
+              "A inteligência do Claude não está disponível neste navegador.",
+              true,
+            );
+            return;
+          }
+          const btn = $("#btnClaudeDirector");
+          btn.disabled = true;
+          const old = btn.textContent;
+          btn.textContent = "✨ Dirigindo…";
+          try {
+            const currentScenes = state.scenes.map((scene) => ({
+              kind: scene.kind,
+              title: scene.title,
+              sub: scene.sub,
+              items: scene.items,
+              narracao: scene.narr,
+            }));
+            const prompt = `Você é diretor criativo de vídeos curtos. Crie uma direção de vídeo ${state.type} para a marca abaixo. Preserve a mensagem da marca, crie entre 4 e 7 cenas claras e proponha somente valores permitidos.
+
+Dados da marca:
+${brandFacts()}
+
+Roteiro ou prompt do usuário:
+${state.fullScript.trim() || "Use os dados da marca para criar o roteiro."}
+
+Cenas atuais que devem ser aprimoradas quando forem relevantes:
+${JSON.stringify(currentScenes)}
+
+Duração alvo: ${parseFloat(state.target) || 30} segundos.
+
+Responda APENAS com JSON neste formato:
+{"scenes":[{"kind":"intro|title|bullets|cta","title":"...","sub":"...","items":["..."],"narracao":"..."}],"style":"neon|clean|bold","background":"auto|aurora|grade|ondas|minimal|particulas|gradiente|escuro|claro","trans":"auto|fade|dissolve|slide|push|zoom|blur|wipe|circle|flash|morph|glitch|smoothzoom|up","tempo":"dinamico|suave","mood":"energico|eletronico|corporativo|calmo|epico"}`;
+            const direction = await sampleFn.json(prompt, {
+              modelTier: "default",
+            });
+            if (!direction || !Array.isArray(direction.scenes))
+              throw { code: "invalid_json" };
+            let scenes = direction.scenes
+              .map(aiScene)
+              .filter((scene) => scene.title)
+              .slice(0, 7);
+            if (!scenes.length) throw { code: "invalid_json" };
+            scenes[0].kind = "intro";
+            const ctaIndex = scenes.findIndex((scene) => scene.kind === "cta");
+            if (ctaIndex >= 0) {
+              const [cta] = scenes.splice(ctaIndex, 1);
+              scenes.push(cta);
+            } else {
+              scenes[scenes.length - 1].kind = "cta";
+            }
+            scenes[scenes.length - 1].url = domain();
+            state.scenes = scenes;
+            ["style", "background", "trans", "tempo", "mood"].forEach((key) => {
+              const control = $("#" + key);
+              if (
+                control &&
+                [...control.options].some(
+                  (option) => option.value === direction[key],
+                )
+              ) {
+                state[key] = direction[key];
+              }
+            });
+            state.soundtrackEnabled = true;
+            state.edited = true;
+            fitDurations();
+            syncFields();
+            renderScenes();
+            invalidateGeneratedVideo();
+            refresh();
+            setMsg(
+              "#msgScenes",
+              "Direção do Claude aplicada: " +
+                scenes.length +
+                " cenas prontas para revisar.",
+            );
           } catch (e) {
             setMsg("#msgScenes", aiErr(e), true);
           }
@@ -7756,6 +7856,7 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           setMsg("#msgScenes", "Durações ajustadas.");
         });
         $("#btnAI").addEventListener("click", aiScript);
+        $("#btnClaudeDirector").addEventListener("click", aiCreativeDirection);
         $("#btnRefine").addEventListener("click", () => {
           setMsg("#msgExtract", "Refinar com IA (em desenvolvimento).");
         });
@@ -7960,6 +8061,7 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
               sampleFn = await window.claude.use("sample");
               if (sampleFn) {
                 $("#btnAI").classList.remove("hide");
+                $("#btnClaudeDirector").classList.remove("hide");
                 $("#useAIwrap").classList.remove("hide");
               }
             }
