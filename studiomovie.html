@@ -2458,7 +2458,13 @@
     <meta name="theme-color" content="#2563eb" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <link id="appManifest" rel="manifest" href="manifest.webmanifest" />
+    <link id="appFavicon" rel="icon" href="icons/studio-icon.svg" />
+    <link
+      id="appTouchIcon"
+      rel="apple-touch-icon"
+      href="icons/studio-icon.svg"
+    />
     <title>Studio de Vídeo por URL</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -2927,9 +2933,15 @@
       >
         Tema escuro
       </button>
-      <button class="secondary install-btn hide" id="btnInstall" type="button">
-        Instalar aplicativo
+      <button
+        class="secondary install-btn"
+        id="btnInstall"
+        type="button"
+        aria-describedby="installStatus"
+      >
+        Instalar no celular
       </button>
+      <p class="note install-status" id="installStatus" role="status"></p>
     </header>
 
     <div class="app">
@@ -2958,7 +2970,7 @@
               <button id="btnDemo">Ver exemplo</button>
             </div>
             <p class="msg" id="msgExtract"></p>
-            <details class="advanced-panel">
+            <details class="advanced-panel" id="manualIdentity">
               <summary>
                 Não conseguiu ler a URL? Ajustar identidade manualmente
               </summary>
@@ -2983,10 +2995,16 @@
                     accept=".html,.htm,.txt"
                     class="hide"
                   />
+                  <button class="secondary" id="btnApplyManual" type="button">
+                    Aplicar identidade manual
+                  </button>
                   <button class="secondary hide" id="btnRefine">
                     ✨ Refinar textos com IA
                   </button>
                 </div>
+                <p class="note">
+                  Cole HTML, texto do site ou CSS e aplique sem depender da URL.
+                </p>
 
                 <div class="logo-row">
                   <img
@@ -3063,8 +3081,21 @@
                     <option>Poppins</option>
                     <option>Montserrat</option>
                     <option>Inter</option>
+                    <option>DM Sans</option>
+                    <option>Raleway</option>
+                    <option>Nunito</option>
                     <option>Oswald</option>
+                    <option>Bebas Neue</option>
                     <option>Playfair Display</option>
+                    <option>Lora</option>
+                  </select>
+                </label>
+                <label class="f"
+                  >Ícone do aplicativo
+                  <select id="appIcon">
+                    <option value="play">Play de vídeo</option>
+                    <option value="camera">Câmera criativa</option>
+                    <option value="spark">Estrela de criação</option>
                   </select>
                 </label>
               </div>
@@ -3107,6 +3138,14 @@
                   <option value="laranja">Laranja vibrante</option>
                   <option value="grafite">Grafite minimalista</option>
                   <option value="lavanda">Lavanda contemporânea</option>
+                  <option value="magenta">Magenta expressivo</option>
+                  <option value="menta">Menta refrescante</option>
+                  <option value="marinho">Marinho elegante</option>
+                  <option value="rubi">Rubi editorial</option>
+                  <option value="limao">Limão elétrico</option>
+                  <option value="oceano">Oceano intenso</option>
+                  <option value="areia">Areia natural</option>
+                  <option value="ameixa">Ameixa artística</option>
                 </select>
               </label>
             </div>
@@ -3204,6 +3243,10 @@
         <details class="card" open="" id="c4">
           <summary><span class="n">4</span> Trilha sonora</summary>
           <div class="body">
+            <label class="chk"
+              ><input id="soundtrackEnabled" type="checkbox" checked /> Incluir
+              trilha no vídeo gerado</label
+            >
             <label class="f"
               >Fonte da trilha
               <select id="soundtrackSource">
@@ -3392,9 +3435,26 @@
                 </select></label
               >
               <label class="f"
-                >Cor do texto<input type="color" id="textColor" value="#ffffff"
+                >Cor principal<input
+                  type="color"
+                  id="textColor"
+                  value="#ffffff"
+              /></label>
+              <label class="f"
+                >Cor das palavras-chave<input
+                  type="color"
+                  id="textHighlightColor"
+                  value="#2f6bff"
               /></label>
             </div>
+            <label class="chk"
+              ><input type="checkbox" id="autoTextColors" checked /> Usar cores
+              da identidade visual automaticamente</label
+            >
+            <p class="note">
+              Use *asteriscos* no roteiro para destacar palavras com a segunda
+              cor.
+            </p>
             <div class="row">
               <label class="f"
                 >Sombra<input
@@ -3891,8 +3951,13 @@ Comece hoje mesmo. Fale conosco.</textarea
           Poppins: 'Poppins, "Segoe UI", Arial, sans-serif',
           Montserrat: 'Montserrat, "Segoe UI", Arial, sans-serif',
           Inter: 'Inter, "Segoe UI", Arial, sans-serif',
+          "DM Sans": '"DM Sans", "Segoe UI", Arial, sans-serif',
+          Raleway: 'Raleway, "Segoe UI", Arial, sans-serif',
+          Nunito: 'Nunito, "Segoe UI", Arial, sans-serif',
           Oswald: 'Oswald, "Arial Narrow", Impact, sans-serif',
+          "Bebas Neue": '"Bebas Neue", "Arial Narrow", Impact, sans-serif',
           "Playfair Display": '"Playfair Display", Georgia, serif',
+          Lora: "Lora, Georgia, serif",
         };
         const KIND = {
           intro: "Abertura",
@@ -3958,6 +4023,46 @@ Comece hoje mesmo. Fale conosco.</textarea
             secondary: "#f8f5ff",
             accent: "#9a6ee8",
           },
+          magenta: {
+            primary: "#4c103b",
+            secondary: "#fff1fa",
+            accent: "#e5348b",
+          },
+          menta: {
+            primary: "#123a36",
+            secondary: "#effcf8",
+            accent: "#37c9a5",
+          },
+          marinho: {
+            primary: "#101d3a",
+            secondary: "#f0f5ff",
+            accent: "#5b8def",
+          },
+          rubi: {
+            primary: "#4a1017",
+            secondary: "#fff3f3",
+            accent: "#df3447",
+          },
+          limao: {
+            primary: "#24300a",
+            secondary: "#fbffed",
+            accent: "#9bcf22",
+          },
+          oceano: {
+            primary: "#063a55",
+            secondary: "#ecf9ff",
+            accent: "#1698ce",
+          },
+          areia: {
+            primary: "#403329",
+            secondary: "#fffaf2",
+            accent: "#c98745",
+          },
+          ameixa: {
+            primary: "#371638",
+            secondary: "#fff4ff",
+            accent: "#ae4db3",
+          },
         };
         const state = {
           url: "",
@@ -3998,6 +4103,8 @@ Comece hoje mesmo. Fale conosco.</textarea
             weight: 700,
             align: "center",
             color: "#ffffff",
+            highlight: "#2f6bff",
+            autoColors: true,
             shadow: 0,
             stroke: 0,
             glow: 0,
@@ -4011,8 +4118,10 @@ Comece hoje mesmo. Fale conosco.</textarea
           quality: "1080",
           tone: "Profissional",
           mood: "energico",
+          soundtrackEnabled: true,
           soundtrackSource: "studio",
           soundtrackUrl: "",
+          appIcon: "play",
           brandTheme: "auto",
           visualSeed: 0,
           narrationMode: "off",
@@ -4027,10 +4136,12 @@ Comece hoje mesmo. Fale conosco.</textarea
         };
         let logoImg = null,
           dirty = true,
-          lastExtracted = "";
+          lastExtracted = "",
+          extractionVersion = 0;
         const abuf = {};
         let importedSoundtrackBuffer = null,
-          importedSoundtrackName = "";
+          importedSoundtrackName = "",
+          importedSoundtrackSource = "";
         let availableVoices = [],
           spokenScene = -1;
         const KEY = "studio-video-url-v3";
@@ -4048,6 +4159,14 @@ Comece hoje mesmo. Fale conosco.</textarea
             state.purpose = state.purpose || "reels";
             state.customDuration = state.customDuration || 30;
             state.autoRefresh = state.autoRefresh !== false;
+            state.soundtrackEnabled = state.soundtrackEnabled !== false;
+            if (state.soundtrackSource === "file") {
+              state.soundtrackSource = "studio";
+              state.mood = state.mood === "off" ? "energico" : state.mood;
+            }
+            state.appIcon = ["play", "camera", "spark"].includes(state.appIcon)
+              ? state.appIcon
+              : "play";
             state.narrationMode = "off";
             state.brandTheme = BRAND_THEMES[state.brandTheme]
               ? state.brandTheme
@@ -4071,6 +4190,8 @@ Comece hoje mesmo. Fale conosco.</textarea
                 weight: 700,
                 align: "center",
                 color: "#ffffff",
+                highlight: "#2f6bff",
+                autoColors: true,
                 shadow: 0,
                 stroke: 0,
                 glow: 0,
@@ -4178,7 +4299,11 @@ Comece hoje mesmo. Fale conosco.</textarea
               .split(/\n+/)
               .map((s) => s.trim())
               .filter(Boolean);
-            res.name = clip(lines[0] || "", 50);
+            const titleLine = lines.find((line) => /^title:\s*/i.test(line));
+            res.name = clip(
+              (titleLine || lines[0] || "").replace(/^title:\s*/i, ""),
+              50,
+            );
             res.headings = lines.slice(1, 8).filter((l) => l.length <= 100);
             res.desc = lines.find((l) => l.length > 60) || "";
             return res;
@@ -4281,26 +4406,31 @@ Comece hoje mesmo. Fale conosco.</textarea
             res.tagline = clip(res.desc.split(/(?<=[.!?])\s/)[0], 90);
           return res;
         }
-        function applyExtraction(x) {
-          if (x.name) state.brand.name = clip(x.name, 60);
-          if (x.tagline) state.brand.tagline = clip(x.tagline, 110);
-          if (x.desc) state.brand.desc = clip(x.desc, 220);
-          if (x.cta) state.brand.cta = clip(x.cta, 30);
-          if (!state.brand.name || state.brand.name === "Sua Marca") {
-            const d = domain();
-            if (d)
-              state.brand.name = d
-                .split(".")[0]
-                .replace(/^./, (c) => c.toUpperCase());
-          }
-          if (x.headings.length) state.source.headings = x.headings;
-          if (x.items.length || x.headings.length) state.source.items = x.items;
+        function applyExtraction(x, sourceUrl = state.url) {
+          let fallbackName = "Sua Marca";
+          try {
+            fallbackName = new URL(siteUrl(sourceUrl)).hostname
+              .replace(/^www\./, "")
+              .split(".")[0]
+              .replace(/^./, (c) => c.toUpperCase());
+          } catch (e) {}
+          state.brand = {
+            name: clip(x.name || fallbackName, 60),
+            tagline: clip(x.tagline || "", 110),
+            desc: clip(x.desc || "", 220),
+            cta: clip(x.cta || "", 30),
+          };
+          state.source = {
+            headings: x.headings || [],
+            items: x.items || [],
+          };
           if (x.colors && x.colors.length) {
             state.palette = x.colors
               .filter((h, i, a) => a.findIndex((o) => dist(o, h) < 28) === i)
               .slice(0, 16);
             Object.assign(state.colors, pickPalette(x.colors));
             state.brandTheme = "auto";
+            applyTextColorsFromIdentity();
           }
           state.edited = false;
         }
@@ -4328,6 +4458,8 @@ Comece hoje mesmo. Fale conosco.</textarea
         async function dataUrlFrom(url) {
           const response = await fetch(url, { mode: "cors" });
           if (!response.ok) throw new Error("logo indisponível");
+          if (!/^image\//i.test(response.headers.get("content-type") || ""))
+            throw new Error("logo inválido");
           const blob = await response.blob();
           return await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -4340,29 +4472,79 @@ Comece hoje mesmo. Fale conosco.</textarea
           const direct = siteUrl(url);
           if (!direct) throw new Error("URL ausente");
           let response;
+          if (location.protocol !== "file:") {
+            try {
+              response = await fetch(
+                "/.netlify/functions/extract-site?url=" +
+                  encodeURIComponent(direct),
+              );
+              if (response.ok) {
+                const page = await response.json();
+                if (page && page.html)
+                  return {
+                    url: siteUrl(page.url) || direct,
+                    html: page.html,
+                    logoDataUrl: page.logoDataUrl || "",
+                  };
+              }
+            } catch (e) {}
+          }
           try {
             response = await fetch(direct, { mode: "cors" });
             if (!response.ok) throw new Error("site indisponível");
+            const html = await response.text();
+            if (
+              /window\.__FRAME_PREAMBLE|<title>\s*Studio de Vídeo por URL\s*<\/title>/i.test(
+                html,
+              )
+            ) {
+              throw new Error("resposta redirecionada");
+            }
+            return { url: direct, html, logoDataUrl: "" };
           } catch (e) {
             response = await fetch("https://r.jina.ai/" + direct);
             if (!response.ok)
               throw new Error("não foi possível acessar o site");
+            return {
+              url: direct,
+              html: await response.text(),
+              logoDataUrl: "",
+            };
           }
-          return { url: direct, html: await response.text() };
         }
-        async function applySiteIdentity(raw, url, css = "") {
-          const identity = extract(raw + "\n" + css);
-          if (!identity.colors.length) identity.colors = fallbackColors(url);
-          applyExtraction(identity);
-          const logo = logoFrom(raw, url);
-          if (logo) {
+        async function resolveLogo(raw, url, logoDataUrl = "") {
+          if (logoDataUrl) return logoDataUrl;
+          const candidates = [logoFrom(raw, url)];
+          try {
+            candidates.push(new URL("/favicon.ico", url).href);
+          } catch (e) {}
+          for (const candidate of [...new Set(candidates.filter(Boolean))]) {
             try {
-              setLogo(await dataUrlFrom(logo));
+              return await dataUrlFrom(candidate);
             } catch (e) {}
           }
+          return "";
+        }
+        async function applySiteIdentity(
+          raw,
+          url,
+          css = "",
+          logoDataUrl = "",
+          version = 0,
+        ) {
+          const resolvedLogo = await resolveLogo(raw, url, logoDataUrl);
+          if (version && version !== extractionVersion) return null;
+          const sourceUrl = siteUrl(url);
+          if (sourceUrl) state.url = sourceUrl;
+          const identity = extract(raw + "\n" + css);
+          if (!identity.colors.length) identity.colors = fallbackColors(url);
+          applyExtraction(identity, sourceUrl || url);
+          invalidateGeneratedVideo();
+          if (!(await setLogo(resolvedLogo, version))) return null;
+          if (version && version !== extractionVersion) return null;
           lastExtracted = raw + "\n" + css;
           syncFields();
-          afterBrand();
+          afterBrand(true);
           return identity;
         }
 
@@ -4652,6 +4834,7 @@ Comece hoje mesmo. Fale conosco.</textarea
         function readableTextColor(preferred, th) {
           const background = th.bg1;
           const valid = /^#[0-9a-f]{6}$/i.test(preferred || "");
+          if (state.textStyle.autoColors && valid) return preferred;
           if (valid && contrastRatio(preferred, background) >= 4.5)
             return preferred;
           const light = "#ffffff",
@@ -4661,13 +4844,33 @@ Comece hoje mesmo. Fale conosco.</textarea
             ? light
             : dark;
         }
+        function readableHighlightColor(preferred, th, textColor) {
+          const background = th.bg1,
+            candidates = [preferred, th.accent, state.colors.accent].filter(
+              (color, index, all) =>
+                /^#[0-9a-f]{6}$/i.test(color || "") &&
+                all.indexOf(color) === index,
+            );
+          const color = candidates.find(
+            (candidate) =>
+              candidate.toLowerCase() !== textColor.toLowerCase() &&
+              contrastRatio(candidate, background) >= 3,
+          );
+          if (color) return color;
+          return lum(background) < 0.5 ? "#facc15" : "#b42318";
+        }
         function drawLines(f, x, y, align, color, p, stagger, hlc, th) {
           stagger = stagger == null ? 0.14 : stagger;
-          const textColor = readableTextColor(
+          const activeTheme = th || theme(),
+            textColor = readableTextColor(
               state.textStyle.color || color,
-              th || theme(),
+              activeTheme,
             ),
-            highlightColor = readableTextColor(hlc || color, th || theme());
+            highlightColor = readableHighlightColor(
+              state.textStyle.highlight || hlc || color,
+              activeTheme,
+              textColor,
+            );
           ctx.font = fontStr(f.size, f.weight || state.textStyle.weight);
           ctx.textBaseline = "top";
           ctx.textAlign = "left";
@@ -4704,7 +4907,7 @@ Comece hoje mesmo. Fale conosco.</textarea
             ctx.clip();
             ctx.globalAlpha = base * clamp(pi * 1.8);
             ctx.shadowColor = state.textStyle.glow
-              ? rgba(hlc || color, 0.85)
+              ? rgba(highlightColor, 0.85)
               : "rgba(0,0,0,.65)";
             ctx.shadowBlur = Math.max(
               state.textStyle.shadow,
@@ -4774,6 +4977,24 @@ Comece hoje mesmo. Fale conosco.</textarea
             card: "rgba(255,255,255,.08)",
             shape: A,
           };
+        }
+        function applyTextColorsFromIdentity() {
+          if (!state.textStyle.autoColors) return;
+          const th = theme(),
+            lightBackground =
+              state.style === "clean" ||
+              ["clean", "claro", "minimal"].includes(state.background),
+            primary = state.colors.primary,
+            main =
+              lightBackground && contrastRatio(primary, th.bg1) >= 4.5
+                ? primary
+                : "#ffffff";
+          state.textStyle.color = main;
+          state.textStyle.highlight = readableHighlightColor(
+            state.colors.accent,
+            th,
+            main,
+          );
         }
         const hash = (k) => {
           const x =
@@ -5638,6 +5859,16 @@ Comece hoje mesmo. Fale conosco.</textarea
           lastBlob = null,
           lastName = "",
           pipeBusy = false;
+        function invalidateGeneratedVideo() {
+          if (!lastBlob) return;
+          lastBlob = null;
+          lastName = "";
+          const video = $("#resVideo");
+          if (video.src.startsWith("blob:")) URL.revokeObjectURL(video.src);
+          video.removeAttribute("src");
+          video.load();
+          $("#result").style.display = "none";
+        }
         function pickMime(pref, hasAudio) {
           if (!window.MediaRecorder) return "";
           const mp4 = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4"],
@@ -5646,8 +5877,9 @@ Comece hoje mesmo. Fale conosco.</textarea
               "video/webm;codecs=vp8,opus",
               "video/webm",
             ];
-          const order =
-            pref === "webm" || hasAudio ? web.concat(mp4) : mp4.concat(web);
+          if (hasAudio)
+            return web.find((m) => MediaRecorder.isTypeSupported(m)) || "";
+          const order = pref === "webm" ? web.concat(mp4) : mp4.concat(web);
           return order.find((m) => MediaRecorder.isTypeSupported(m)) || "";
         }
         async function createStudioSoundtrack(duration) {
@@ -5690,70 +5922,83 @@ Comece hoje mesmo. Fale conosco.</textarea
               },
             },
             profile = profiles[state.mood] || profiles.corporativo;
-          await audio.resume();
-          const start = audio.currentTime + 0.06,
-            soundtrackGain = profile.gain;
-          gain.gain.setValueAtTime(soundtrackGain, start);
           gain.connect(destination);
-          for (
-            let time = 0, index = 0;
-            state.mood !== "off" && time < duration;
-            time += profile.tempo, index++
-          ) {
-            const oscillator = audio.createOscillator(),
-              envelope = audio.createGain(),
-              length = Math.min(profile.tempo * 0.8, duration - time);
-            oscillator.type = profile.wave;
-            oscillator.frequency.value =
-              profile.notes[index % profile.notes.length];
-            envelope.gain.setValueAtTime(0.0001, start + time);
-            envelope.gain.exponentialRampToValueAtTime(1, start + time + 0.025);
-            envelope.gain.exponentialRampToValueAtTime(
-              0.0001,
-              start + time + length,
-            );
-            oscillator.connect(envelope).connect(gain);
-            oscillator.start(start + time);
-            oscillator.stop(start + time + length + 0.03);
-          }
-          if (state.narrationMode === "on") {
-            starts().forEach((sceneStart, index) => {
-              const buffer = abuf[state.scenes[index].id];
-              if (!buffer) return;
-              const source = audio.createBufferSource();
-              const narrationGain = audio.createGain();
-              const sceneDuration = Math.min(
-                buffer.duration,
-                +state.scenes[index].dur || buffer.duration,
-              );
-              source.buffer = buffer;
-              narrationGain.gain.value = 1;
-              source.connect(narrationGain).connect(destination);
-              source.start(start + sceneStart, 0, sceneDuration);
-              narrationGain.gain.setValueAtTime(1, start + sceneStart);
-              narrationGain.gain.linearRampToValueAtTime(
-                0.001,
-                start + sceneStart + Math.max(0.02, sceneDuration - 0.05),
-              );
-              if (state.mood !== "off") {
-                const duckStart = start + sceneStart;
-                const duckEnd = duckStart + sceneDuration;
-                gain.gain.setValueAtTime(soundtrackGain, duckStart);
-                gain.gain.linearRampToValueAtTime(
-                  soundtrackGain * 0.24,
-                  duckStart + 0.08,
+          await audio.resume();
+          const carrier = audio.createConstantSource();
+          carrier.offset.value = 0.00001;
+          carrier.connect(destination);
+          carrier.start();
+          return {
+            audio,
+            stream: destination.stream,
+            async start() {
+              const start = audio.currentTime + 0.1,
+                soundtrackGain = profile.gain;
+              gain.gain.setValueAtTime(soundtrackGain, start);
+              for (
+                let time = 0, index = 0;
+                state.mood !== "off" && time < duration;
+                time += profile.tempo, index++
+              ) {
+                const oscillator = audio.createOscillator(),
+                  envelope = audio.createGain(),
+                  length = Math.min(profile.tempo * 0.8, duration - time);
+                oscillator.type = profile.wave;
+                oscillator.frequency.value =
+                  profile.notes[index % profile.notes.length];
+                envelope.gain.setValueAtTime(0.0001, start + time);
+                envelope.gain.exponentialRampToValueAtTime(
+                  1,
+                  start + time + 0.025,
                 );
-                gain.gain.setValueAtTime(
-                  soundtrackGain * 0.24,
-                  Math.max(duckStart + 0.08, duckEnd - 0.12),
+                envelope.gain.exponentialRampToValueAtTime(
+                  0.0001,
+                  start + time + length,
                 );
-                gain.gain.linearRampToValueAtTime(soundtrackGain, duckEnd);
+                oscillator.connect(envelope).connect(gain);
+                oscillator.start(start + time);
+                oscillator.stop(start + time + length + 0.03);
               }
-            });
-          }
-          return { audio, stream: destination.stream };
+              if (state.narrationMode === "on") {
+                starts().forEach((sceneStart, index) => {
+                  const buffer = abuf[state.scenes[index].id];
+                  if (!buffer) return;
+                  const source = audio.createBufferSource();
+                  const narrationGain = audio.createGain();
+                  const sceneDuration = Math.min(
+                    buffer.duration,
+                    +state.scenes[index].dur || buffer.duration,
+                  );
+                  source.buffer = buffer;
+                  narrationGain.gain.value = 1;
+                  source.connect(narrationGain).connect(destination);
+                  source.start(start + sceneStart, 0, sceneDuration);
+                  narrationGain.gain.setValueAtTime(1, start + sceneStart);
+                  narrationGain.gain.linearRampToValueAtTime(
+                    0.001,
+                    start + sceneStart + Math.max(0.02, sceneDuration - 0.05),
+                  );
+                  const duckStart = start + sceneStart;
+                  const duckEnd = duckStart + sceneDuration;
+                  gain.gain.setValueAtTime(soundtrackGain, duckStart);
+                  gain.gain.linearRampToValueAtTime(
+                    soundtrackGain * 0.24,
+                    duckStart + 0.08,
+                  );
+                  gain.gain.setValueAtTime(
+                    soundtrackGain * 0.24,
+                    Math.max(duckStart + 0.08, duckEnd - 0.12),
+                  );
+                  gain.gain.linearRampToValueAtTime(soundtrackGain, duckEnd);
+                });
+              }
+            },
+            stop() {
+              carrier.stop();
+            },
+          };
         }
-        async function decodeImportedSoundtrack(data, name) {
+        async function decodeImportedSoundtrack(data, name, source) {
           const AudioContextClass =
             window.AudioContext || window.webkitAudioContext;
           if (!AudioContextClass)
@@ -5764,6 +6009,7 @@ Comece hoje mesmo. Fale conosco.</textarea
               data.slice(0),
             );
             importedSoundtrackName = name || "Trilha importada";
+            importedSoundtrackSource = source;
           } catch (e) {
             throw new Error("Não foi possível ler esse arquivo de áudio.");
           } finally {
@@ -5787,10 +6033,14 @@ Comece hoje mesmo. Fale conosco.</textarea
           await decodeImportedSoundtrack(
             await response.arrayBuffer(),
             url.split("/").pop().split("?")[0] || "Trilha da URL",
+            "url",
           );
         }
         async function createImportedSoundtrack(duration) {
-          if (!importedSoundtrackBuffer) {
+          if (
+            !importedSoundtrackBuffer ||
+            importedSoundtrackSource !== state.soundtrackSource
+          ) {
             if (state.soundtrackSource === "url") await loadSoundtrackFromUrl();
             else
               throw new Error(
@@ -5803,25 +6053,45 @@ Comece hoje mesmo. Fale conosco.</textarea
             destination = audio.createMediaStreamDestination(),
             gain = audio.createGain(),
             buffer = importedSoundtrackBuffer;
-          gain.gain.value = 0.82;
           gain.connect(destination);
           await audio.resume();
-          const start = audio.currentTime + 0.06;
-          for (let time = 0; time < duration; time += buffer.duration) {
-            const source = audio.createBufferSource();
-            source.buffer = buffer;
-            source.connect(gain);
-            source.start(
-              start + time,
-              0,
-              Math.min(buffer.duration, duration - time),
-            );
-          }
-          return { audio, stream: destination.stream };
+          const carrier = audio.createConstantSource();
+          carrier.offset.value = 0.00001;
+          carrier.connect(destination);
+          carrier.start();
+          return {
+            audio,
+            stream: destination.stream,
+            async start() {
+              const start = audio.currentTime + 0.1;
+              gain.gain.setValueAtTime(0.82, start);
+              for (let time = 0; time < duration; time += buffer.duration) {
+                const source = audio.createBufferSource();
+                source.buffer = buffer;
+                source.connect(gain);
+                source.start(
+                  start + time,
+                  0,
+                  Math.min(buffer.duration, duration - time),
+                );
+              }
+            },
+            stop() {
+              carrier.stop();
+            },
+          };
         }
         async function createSoundtrack(duration) {
-          if (state.soundtrackSource === "studio")
+          if (!state.soundtrackEnabled) return null;
+          if (state.soundtrackSource === "studio") {
+            if (state.mood === "off") {
+              state.mood = "energico";
+              $("#mood").value = state.mood;
+              updateSoundtrackNote();
+              save();
+            }
             return createStudioSoundtrack(duration);
+          }
           return createImportedSoundtrack(duration);
         }
         async function loadFonts() {
@@ -5915,7 +6185,7 @@ Comece hoje mesmo. Fale conosco.</textarea
             mime = pickMime(state.fmt, !!soundtrack),
             opts = {
               videoBitsPerSecond: state.quality === "720" ? 4e6 : 8e6,
-              audioBitsPerSecond: 192000,
+              audioBitsPerSecond: 256000,
             };
           if (soundtrack && !stream.getAudioTracks().length) {
             setBusy(false);
@@ -5926,11 +6196,34 @@ Comece hoje mesmo. Fale conosco.</textarea
             );
             return false;
           }
+          if (soundtrack && !mime) {
+            stream.getTracks().forEach((track) => track.stop());
+            await soundtrack.audio.close();
+            setBusy(false);
+            setMsg(
+              "#msgGen",
+              "Este navegador não suporta WebM com áudio. Use Chrome ou Edge atualizados para exportar a trilha.",
+              true,
+            );
+            return false;
+          }
+          stream.getAudioTracks().forEach((track) => (track.enabled = true));
           if (mime) opts.mimeType = mime;
           let rec;
           try {
             rec = new MediaRecorder(stream, opts);
           } catch (e) {
+            if (soundtrack) {
+              stream.getTracks().forEach((track) => track.stop());
+              await soundtrack.audio.close();
+              setBusy(false);
+              setMsg(
+                "#msgGen",
+                "Não foi possível iniciar a exportação de áudio. Tente novamente no Chrome ou Edge.",
+                true,
+              );
+              return false;
+            }
             rec = new MediaRecorder(stream);
           }
           const chunks = [];
@@ -5939,6 +6232,24 @@ Comece hoje mesmo. Fale conosco.</textarea
           };
           const stopped = new Promise((r) => (rec.onstop = r));
           rec.start(250);
+          try {
+            if (soundtrack) await soundtrack.start();
+          } catch (e) {
+            rec.stop();
+            await stopped;
+            stream.getTracks().forEach((track) => track.stop());
+            if (soundtrack) {
+              soundtrack.stop();
+              await soundtrack.audio.close();
+            }
+            setBusy(false);
+            setMsg(
+              "#msgGen",
+              e.message || "Não foi possível iniciar a trilha sonora.",
+              true,
+            );
+            return false;
+          }
           const t0 = performance.now();
           await new Promise((resolve) => {
             const step = () => {
@@ -5965,7 +6276,10 @@ Comece hoje mesmo. Fale conosco.</textarea
           rec.stop();
           await stopped;
           stream.getTracks().forEach((t) => t.stop());
-          if (soundtrack) await soundtrack.audio.close();
+          if (soundtrack) {
+            soundtrack.stop();
+            await soundtrack.audio.close();
+          }
           setBusy(false);
           tPlay = 0;
           redraw();
@@ -6006,7 +6320,13 @@ Comece hoje mesmo. Fale conosco.</textarea
           );
           try {
             await addHistory(lastBlob, lastName);
-          } catch (e) {}
+          } catch (e) {
+            $("#resInfo").textContent += " · histórico indisponível";
+            const history = $("#historyList");
+            if (history)
+              history.textContent =
+                "Não foi possível salvar este vídeo no histórico.";
+          }
           return true;
         }
         async function saveFile() {
@@ -6025,12 +6345,9 @@ Comece hoje mesmo. Fale conosco.</textarea
               setMsg("#msgGen", "Download cancelado. Tente novamente.");
               return false;
             }
-            setMsg(
-              "#msgGen",
-              'Não foi possível salvar por aqui. Clique com o botão direito no vídeo e escolha "Salvar vídeo como…".',
-              true,
-            );
-            return false;
+            downloadBlob(lastBlob, lastName || baseName() + ".webm");
+            setMsg("#msgGen", "Download iniciado.");
+            return true;
           }
         }
         async function download() {
@@ -6084,12 +6401,11 @@ Comece hoje mesmo. Fale conosco.</textarea
             brand: plain(state.brand.name),
           };
           await new Promise((resolve, reject) => {
-            const request = db
-              .transaction(HISTORY_STORE, "readwrite")
-              .objectStore(HISTORY_STORE)
-              .put(item);
-            request.onsuccess = resolve;
-            request.onerror = () => reject(request.error);
+            const transaction = db.transaction(HISTORY_STORE, "readwrite");
+            transaction.objectStore(HISTORY_STORE).put(item);
+            transaction.oncomplete = resolve;
+            transaction.onerror = () => reject(transaction.error);
+            transaction.onabort = () => reject(transaction.error);
           });
           db.close();
           const items = await historyItems();
@@ -6143,8 +6459,13 @@ Comece hoje mesmo. Fale conosco.</textarea
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
           link.download = name;
+          link.style.display = "none";
+          document.body.appendChild(link);
           link.click();
-          setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+          setTimeout(() => {
+            URL.revokeObjectURL(link.href);
+            link.remove();
+          }, 1000);
         }
         async function renderHistory() {
           const box = $("#historyList");
@@ -6217,8 +6538,9 @@ Comece hoje mesmo. Fale conosco.</textarea
             });
             setMsg("#msgGen", "Projeto exportado. ✔");
           } catch (e) {
-            if (e && e.code !== "declined")
-              setMsg("#msgGen", "Não foi possível salvar o projeto.", true);
+            if (e && e.code === "declined") return;
+            downloadBlob(blob, baseName() + "-projeto.json");
+            setMsg("#msgGen", "Download do projeto iniciado.");
           }
         }
 
@@ -6324,14 +6646,23 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             let raw = $("#src").value.trim(),
               css = $("#css").value.trim();
             const url = siteUrl($("#url").value);
-            if (raw && raw + "\n" + css !== lastExtracted) {
-              step("1/5 Extraindo identidade…");
-              await applySiteIdentity(raw, url || location.href, css);
-              await wait(50);
-            } else if (!raw && url) {
+            if (url) {
               step("1/5 Extraindo identidade do site…");
+              const version = ++extractionVersion;
               const page = await readSite(url);
-              await applySiteIdentity(page.html, page.url, css);
+              const identity = await applySiteIdentity(
+                page.html,
+                page.url,
+                css,
+                page.logoDataUrl,
+                version,
+              );
+              if (!identity || version !== extractionVersion)
+                throw new Error("A URL foi alterada durante a extração.");
+              await wait(50);
+            } else if (raw && raw + "\n" + css !== lastExtracted) {
+              step("1/5 Extraindo identidade…");
+              await applySiteIdentity(raw, location.href, css);
               await wait(50);
             }
             step("2/5 Gerando roteiro NOVO…");
@@ -6400,6 +6731,7 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             "tone",
             "mood",
             "soundtrackSource",
+            "appIcon",
             "brandTheme",
             "trans",
             "tempo",
@@ -6410,6 +6742,7 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             $("#" + k).value = state[k];
           });
           $("#soundtrackUrl").value = state.soundtrackUrl;
+          $("#soundtrackEnabled").checked = state.soundtrackEnabled;
           $("#customDuration").value = state.customDuration;
           $("#animIn").value = state.animation.input;
           $("#animOut").value = state.animation.output;
@@ -6422,6 +6755,9 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           $("#textWeight").value = state.textStyle.weight;
           $("#textAlign").value = state.textStyle.align;
           $("#textColor").value = state.textStyle.color;
+          $("#textHighlightColor").value = state.textStyle.highlight;
+          $("#autoTextColors").checked = state.textStyle.autoColors;
+          updateTextColorControls();
           $("#textShadow").value = state.textStyle.shadow;
           $("#textStroke").value = state.textStyle.stroke;
           $("#textGlow").value = state.textStyle.glow;
@@ -6431,6 +6767,7 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           renderPalette();
           renderLogo();
           updateThemeSwatches();
+          updateAppIcon();
           updateSoundtrackNote();
           updateMotionNote();
         }
@@ -6460,24 +6797,35 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           $("#mood")
             .closest("label")
             .classList.toggle("hide", state.soundtrackSource !== "studio");
+          const importedForSource =
+            importedSoundtrackBuffer &&
+            importedSoundtrackSource === state.soundtrackSource;
           const fileName = $("#soundtrackFileName");
-          fileName.textContent = importedSoundtrackName
+          fileName.textContent = importedForSource
             ? "Pronto para exportar: " + importedSoundtrackName
             : "";
-          fileName.classList.toggle("hide", !importedSoundtrackName);
+          fileName.classList.toggle("hide", !importedForSource);
+          if (!state.soundtrackEnabled) {
+            note.textContent =
+              "A trilha está desativada. Ative-a para incluir áudio no vídeo gerado.";
+            return;
+          }
           if (state.soundtrackSource === "url") {
             note.textContent =
-              "O áudio da URL será baixado e incorporado ao vídeo. A URL deve permitir acesso CORS.";
+              "O áudio da URL será incorporado ao vídeo em WebM. A URL deve permitir acesso CORS.";
             return;
           }
           if (state.soundtrackSource === "file") {
-            note.textContent = importedSoundtrackBuffer
-              ? "O arquivo selecionado será incorporado ao vídeo."
+            note.textContent = importedForSource
+              ? "O arquivo selecionado será incorporado ao vídeo em WebM."
               : "Selecione um arquivo de áudio para incorporar ao vídeo.";
             return;
           }
           note.textContent =
-            descriptions[state.mood] || descriptions.corporativo;
+            state.mood === "off"
+              ? descriptions.off
+              : (descriptions[state.mood] || descriptions.corporativo) +
+                " Será exportada em WebM com áudio para preservar a trilha.";
         }
         function updateMotionNote() {
           const note = $("#motionNote");
@@ -6505,10 +6853,37 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             if (swatch) swatch.style.background = color;
           });
         }
+        function updateAppIcon() {
+          const icons = {
+              play: {
+                manifest: "manifest.webmanifest",
+                image: "icons/studio-icon.svg",
+              },
+              camera: {
+                manifest: "manifest-camera.webmanifest",
+                image: "icons/studio-camera.svg",
+              },
+              spark: {
+                manifest: "manifest-spark.webmanifest",
+                image: "icons/studio-spark.svg",
+              },
+            },
+            icon = icons[state.appIcon] || icons.play;
+          $("#appManifest").href = icon.manifest;
+          $("#appFavicon").href = icon.image;
+          $("#appTouchIcon").href = icon.image;
+        }
+        function updateTextColorControls() {
+          const automatic = state.textStyle.autoColors;
+          $("#textColor").disabled = automatic;
+          $("#textHighlightColor").disabled = automatic;
+        }
         function applyBrandTheme(name) {
           state.brandTheme = name;
-          if (BRAND_THEMES[name])
+          if (BRAND_THEMES[name]) {
             Object.assign(state.colors, BRAND_THEMES[name]);
+          }
+          applyTextColorsFromIdentity();
           syncFields();
           refresh();
         }
@@ -6539,24 +6914,35 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             $("#btnLogoClear").classList.add("hide");
           }
         }
-        function setLogo(src) {
-          state.logo = src;
+        function setLogo(src, version = 0) {
+          const isCurrent = () => !version || version === extractionVersion;
+          if (!isCurrent()) return Promise.resolve(false);
+          state.logo = src || null;
           renderLogo();
           if (!src) {
             logoImg = null;
             refresh();
-            return;
+            return Promise.resolve(true);
           }
-          const im = new Image();
-          im.onload = () => {
-            logoImg = im;
-            applyLogoColors(im);
-            refresh();
-          };
-          im.onerror = () => {
-            logoImg = null;
-          };
-          im.src = src;
+          return new Promise((resolve) => {
+            const im = new Image();
+            im.onload = () => {
+              if (!isCurrent()) return resolve(false);
+              logoImg = im;
+              applyLogoColors(im);
+              refresh();
+              resolve(true);
+            };
+            im.onerror = () => {
+              if (isCurrent()) {
+                state.logo = null;
+                logoImg = null;
+                renderLogo();
+              }
+              resolve(isCurrent());
+            };
+            im.src = src;
+          });
         }
         function applyLogoColors(image) {
           const size = 80,
@@ -6679,8 +7065,8 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           }
           previewUpdateTimer = setTimeout(updatePreview, 220);
         }
-        function afterBrand() {
-          if (!state.edited) {
+        function afterBrand(rebuildScenes = false) {
+          if (rebuildScenes || !state.edited) {
             state.scenes = buildScenes(state.type);
           }
           renderScenes();
@@ -6696,11 +7082,8 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         }
         bind("url", (v) => {
           state.url = v.trim();
-          if (!state.edited) {
-            state.scenes = buildScenes(state.type);
-            renderScenes();
-          }
-          refresh();
+          extractionVersion++;
+          save();
         });
         bind("name", (v) => {
           state.brand.name = v;
@@ -6720,14 +7103,17 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         });
         bind("cP", (v) => {
           state.colors.primary = v;
+          applyTextColorsFromIdentity();
           refresh();
         });
         bind("cS", (v) => {
           state.colors.secondary = v;
+          applyTextColorsFromIdentity();
           refresh();
         });
         bind("cA", (v) => {
           state.colors.accent = v;
+          applyTextColorsFromIdentity();
           refresh();
         });
         bind("fname", (v) => {
@@ -6741,10 +7127,11 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         });
         $("#type").addEventListener("change", (e) => {
           state.type = e.target.value;
-          if (!state.edited) {
-            state.scenes = buildScenes(state.type);
-            renderScenes();
-          }
+          state.edited = false;
+          state.scenes = buildScenes(state.type);
+          fitDurations();
+          renderScenes();
+          invalidateGeneratedVideo();
           refresh();
         });
         $("#format").addEventListener("change", (e) => {
@@ -6760,10 +7147,12 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         });
         $("#style").addEventListener("change", (e) => {
           state.style = e.target.value;
+          applyTextColorsFromIdentity();
           refresh();
         });
         $("#background").addEventListener("change", (e) => {
           state.background = e.target.value;
+          applyTextColorsFromIdentity();
           updateMotionNote();
           refresh();
         });
@@ -6883,11 +7272,18 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             refresh();
           });
         });
+        $("#autoTextColors").addEventListener("change", (e) => {
+          state.textStyle.autoColors = e.target.checked;
+          applyTextColorsFromIdentity();
+          updateTextColorControls();
+          refresh();
+        });
         [
           ["textSize", "size"],
           ["textWeight", "weight"],
           ["textAlign", "align"],
           ["textColor", "color"],
+          ["textHighlightColor", "highlight"],
           ["textShadow", "shadow"],
           ["textStroke", "stroke"],
           ["textGlow", "glow"],
@@ -6908,18 +7304,44 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         });
         $("#mood").addEventListener("change", (e) => {
           state.mood = e.target.value;
+          state.soundtrackEnabled = state.mood !== "off";
+          $("#soundtrackEnabled").checked = state.soundtrackEnabled;
           updateSoundtrackNote();
           refresh();
         });
+        $("#soundtrackEnabled").addEventListener("change", (e) => {
+          state.soundtrackEnabled = e.target.checked;
+          if (
+            state.soundtrackEnabled &&
+            state.soundtrackSource === "studio" &&
+            state.mood === "off"
+          ) {
+            state.mood = "energico";
+            $("#mood").value = state.mood;
+          }
+          updateSoundtrackNote();
+          save();
+        });
         $("#soundtrackSource").addEventListener("change", (e) => {
           state.soundtrackSource = e.target.value;
+          state.soundtrackEnabled = true;
+          $("#soundtrackEnabled").checked = true;
+          importedSoundtrackBuffer = null;
+          importedSoundtrackName = "";
+          importedSoundtrackSource = "";
           updateSoundtrackNote();
+          save();
+        });
+        $("#appIcon").addEventListener("change", (e) => {
+          state.appIcon = e.target.value;
+          updateAppIcon();
           save();
         });
         $("#soundtrackUrl").addEventListener("change", (e) => {
           state.soundtrackUrl = e.target.value.trim();
           importedSoundtrackBuffer = null;
           importedSoundtrackName = "";
+          importedSoundtrackSource = "";
           updateSoundtrackNote();
           save();
         });
@@ -6927,11 +7349,16 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           const file = e.target.files && e.target.files[0];
           if (!file) return;
           try {
-            await decodeImportedSoundtrack(await file.arrayBuffer(), file.name);
+            await decodeImportedSoundtrack(
+              await file.arrayBuffer(),
+              file.name,
+              "file",
+            );
             setMsg("#msgGen", "Áudio importado e pronto para entrar no vídeo.");
           } catch (error) {
             importedSoundtrackBuffer = null;
             importedSoundtrackName = "";
+            importedSoundtrackSource = "";
             e.target.value = "";
             setMsg(
               "#msgGen",
@@ -6948,9 +7375,10 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         });
 
         $("#btnExtract").addEventListener("click", () => {
-          extractIdentity();
+          extractIdentity(true);
         });
         async function extractIdentity(preferUrl = false) {
+          const version = ++extractionVersion;
           const raw = $("#src").value.trim(),
             css = $("#css").value.trim(),
             url = siteUrl($("#url").value);
@@ -6959,21 +7387,43 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           button.disabled = true;
           button.textContent = "Extraindo…";
           try {
-            let source = preferUrl ? "" : raw,
+            let source = preferUrl ? "" : raw || css,
               base = url;
             if (!source) {
               if (!url)
-                throw new Error("Informe uma URL ou cole o código-fonte.");
+                throw new Error("Informe uma URL ou cole HTML, texto ou CSS.");
               setMsg("#msgExtract", "Lendo o site e identificando a marca…");
               const page = await readSite(url);
               source = page.html;
               base = page.url;
+              const x = await applySiteIdentity(
+                source,
+                base,
+                css,
+                page.logoDataUrl,
+                version,
+              );
+              if (!x || version !== extractionVersion) return;
+              setMsg(
+                "#msgExtract",
+                "Identidade aplicada: " +
+                  x.headings.length +
+                  " títulos, " +
+                  x.items.length +
+                  " itens e " +
+                  state.palette.length +
+                  " cores.",
+              );
+              return;
             }
             const x = await applySiteIdentity(
               source,
               base || location.href,
               css,
+              "",
+              version,
             );
+            if (!x || version !== extractionVersion) return;
             setMsg(
               "#msgExtract",
               "Identidade aplicada: " +
@@ -6985,29 +7435,75 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
                 " cores.",
             );
           } catch (e) {
+            if (version !== extractionVersion) return;
+            const manual = $("#manualIdentity");
+            if (manual) {
+              manual.open = true;
+              manual.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              setTimeout(() => $("#src").focus(), 0);
+            }
             setMsg(
               "#msgExtract",
-              e.message ||
-                "Não consegui ler esse site. Cole o código-fonte ou envie o arquivo HTML.",
+              "Não foi possível ler a URL. Ajuste a identidade manualmente abaixo.",
               true,
             );
+          } finally {
+            if (version === extractionVersion) {
+              button.disabled = false;
+              button.textContent = label;
+            }
           }
-          button.disabled = false;
-          button.textContent = label;
         }
+        $("#btnApplyManual").addEventListener("click", () => {
+          if ($("#src").value.trim() || $("#css").value.trim()) {
+            extractIdentity();
+            return;
+          }
+          const name = plain(state.brand.name).trim(),
+            tagline = plain(state.brand.tagline).trim(),
+            desc = plain(state.brand.desc).trim(),
+            cta = plain(state.brand.cta).trim();
+          if (!name && !tagline && !desc && !cta) {
+            setMsg(
+              "#msgExtract",
+              "Preencha o nome da marca, slogan, descrição ou CTA para aplicar a identidade manual.",
+              true,
+            );
+            return;
+          }
+          state.source = {
+            headings: [tagline || name],
+            items: desc
+              ? desc
+                  .split(/[.!?]\s+/)
+                  .map((item) => item.trim())
+                  .filter(Boolean)
+                  .slice(0, 4)
+              : [],
+          };
+          state.palette = [
+            state.colors.primary,
+            state.colors.secondary,
+            state.colors.accent,
+          ];
+          state.edited = false;
+          applyTextColorsFromIdentity();
+          afterBrand();
+          setMsg(
+            "#msgExtract",
+            "Identidade manual aplicada. A campanha foi atualizada sem usar URL.",
+          );
+        });
         $("#fileHtml").addEventListener("change", (e) => {
           const f = e.target.files[0];
           if (!f) return;
           const r = new FileReader();
           r.onload = () => {
             $("#src").value = String(r.result || "");
-            $("#btnExtract").click();
+            extractIdentity();
           };
           r.readAsText(f);
           e.target.value = "";
-        });
-        $("#url").addEventListener("change", () => {
-          if (siteUrl($("#url").value)) extractIdentity(true);
         });
         $("#fileLogo").addEventListener("change", (e) => {
           const f = e.target.files[0];
@@ -7261,6 +7757,7 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
         (async function init() {
           if (!load() || !state.scenes.length)
             state.scenes = buildScenes(state.type);
+          applyTextColorsFromIdentity();
           syncFields();
           renderScenes();
           setFormat();
@@ -7295,8 +7792,17 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
     <script>
       (() => {
         const installButton = document.querySelector("#btnInstall");
+        const installStatus = document.querySelector("#installStatus");
         const themeButton = document.querySelector("#btnTheme");
         let installPrompt;
+        const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        const isStandalone =
+          matchMedia("(display-mode: standalone)").matches ||
+          navigator.standalone === true;
+
+        const setInstallStatus = (message) => {
+          if (installStatus) installStatus.textContent = message;
+        };
 
         const applyTheme = (theme) => {
           document.documentElement.dataset.theme = theme;
@@ -7325,21 +7831,56 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
             navigator.serviceWorker.register("sw.js"),
           );
         }
+        if (isStandalone) {
+          installButton?.classList.add("hide");
+          setInstallStatus("Aplicativo instalado neste dispositivo.");
+        } else if (location.protocol === "file:") {
+          setInstallStatus(
+            "Publique o site em HTTPS para habilitar a instalação no celular.",
+          );
+        } else if (isIos) {
+          setInstallStatus(
+            "No Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.",
+          );
+        } else {
+          setInstallStatus(
+            "Toque para instalar o Studio Movie no dispositivo.",
+          );
+        }
         window.addEventListener("beforeinstallprompt", (event) => {
           event.preventDefault();
           installPrompt = event;
           installButton?.classList.remove("hide");
+          setInstallStatus("Pronto para instalar no dispositivo.");
         });
         installButton?.addEventListener("click", async () => {
-          if (!installPrompt) return;
+          if (!installPrompt) {
+            if (location.protocol === "file:")
+              setInstallStatus(
+                "Abra a versão publicada em HTTPS para instalar o aplicativo.",
+              );
+            else if (isIos)
+              setInstallStatus(
+                "No Safari, toque em Compartilhar e depois em Adicionar à Tela de Início.",
+              );
+            else
+              setInstallStatus(
+                "Use o menu do navegador e escolha Instalar aplicativo quando essa opção estiver disponível.",
+              );
+            return;
+          }
           installPrompt.prompt();
-          await installPrompt.userChoice;
+          const choice = await installPrompt.userChoice;
           installPrompt = null;
-          installButton.classList.add("hide");
+          if (choice.outcome === "accepted") {
+            installButton.classList.add("hide");
+            setInstallStatus("Instalação iniciada.");
+          } else setInstallStatus("Instalação cancelada.");
         });
-        window.addEventListener("appinstalled", () =>
-          installButton?.classList.add("hide"),
-        );
+        window.addEventListener("appinstalled", () => {
+          installButton?.classList.add("hide");
+          setInstallStatus("Aplicativo instalado neste dispositivo.");
+        });
       })();
     </script>
   </body>

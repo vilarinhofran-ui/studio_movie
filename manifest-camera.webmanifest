@@ -11,7 +11,7 @@
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "icons/studio-icon.svg",
+      "src": "icons/studio-camera.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

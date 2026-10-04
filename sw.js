@@ -1,10 +1,14 @@
-const CACHE = "studio-video-v2";
+const CACHE = "studio-video-v3";
 const APP_SHELL = [
   "./",
   "./studiomovie.html",
   "./css/studio.css",
   "./manifest.webmanifest",
+  "./manifest-camera.webmanifest",
+  "./manifest-spark.webmanifest",
   "./icons/studio-icon.svg",
+  "./icons/studio-camera.svg",
+  "./icons/studio-spark.svg",
 ];
 
 self.addEventListener("install", (event) => {

@@ -151,6 +151,10 @@ textarea {
   color: var(--text);
   font: inherit;
 }
+select {
+  min-height: 44px;
+  line-height: 1.2;
+}
 textarea {
   resize: vertical;
   min-height: 52px;
@@ -290,8 +294,10 @@ button:disabled {
   flex-wrap: wrap;
 }
 .scene .srow select {
+  flex: 1 1 130px;
   width: auto;
-  max-width: 150px;
+  min-width: 0;
+  max-width: 170px;
 }
 .scene .srow input[type="number"] {
   width: 70px;
@@ -408,6 +414,9 @@ canvas {
 }
 .install-btn {
   margin-top: 10px;
+}
+.install-status {
+  margin: 6px 0 0;
 }
 .theme-btn {
   margin-top: 10px;
@@ -575,7 +584,9 @@ canvas {
     font-size: 11px;
   }
   .scene .srow select {
-    max-width: 110px;
+    flex-basis: calc(50% - 6px);
+    max-width: none;
+    min-width: 132px;
   }
   .scene .srow .sp {
     display: none;
@@ -585,6 +596,9 @@ canvas {
   }
   .install-btn {
     width: 100%;
+  }
+  .install-status {
+    text-align: center;
   }
   .theme-btn {
     width: 100%;

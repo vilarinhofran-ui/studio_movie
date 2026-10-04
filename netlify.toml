@@ -1,6 +1,14 @@
 [build]
   publish = "."
 
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/"
+  to = "/studiomovie.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
