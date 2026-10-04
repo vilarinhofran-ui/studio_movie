@@ -6467,6 +6467,17 @@ Comece hoje mesmo. Fale conosco.</textarea
             link.remove();
           }, 1000);
         }
+        function viewGeneratedVideo(blob, name) {
+          const video = $("#resVideo");
+          if (video.src.startsWith("blob:")) URL.revokeObjectURL(video.src);
+          video.src = URL.createObjectURL(blob);
+          video.load();
+          $("#resInfo").textContent =
+            name + " · " + (blob.size / 1048576).toFixed(1) + " MB";
+          $("#result").style.display = "block";
+          $("#result").scrollIntoView({ behavior: "smooth", block: "center" });
+          video.play().catch(() => {});
+        }
         async function renderHistory() {
           const box = $("#historyList");
           if (!box) return;
@@ -6497,7 +6508,9 @@ Comece hoje mesmo. Fale conosco.</textarea
               const actions = document.createElement("div");
               actions.className = "btns";
               actions.innerHTML =
-                '<button data-history="download" data-id="' +
+                '<button data-history="view" data-id="' +
+                item.id +
+                '">Ver vídeo</button><button class="secondary" data-history="download" data-id="' +
                 item.id +
                 '">Baixar</button><button class="secondary" data-history="delete" data-id="' +
                 item.id +
@@ -7736,6 +7749,8 @@ Responda APENAS com JSON: [{"kind":"intro","title":"...","sub":"...","narracao":
           try {
             const item = await getHistory(button.dataset.id);
             if (!item) return;
+            if (button.dataset.history === "view")
+              viewGeneratedVideo(item.blob, item.name);
             if (button.dataset.history === "download")
               downloadBlob(item.blob, item.name);
             if (button.dataset.history === "delete") {
